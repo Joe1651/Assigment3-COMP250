@@ -1,3 +1,5 @@
+package assignment3;
+
 import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
