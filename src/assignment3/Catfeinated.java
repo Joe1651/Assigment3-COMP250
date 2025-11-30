@@ -197,7 +197,6 @@ public class Catfeinated implements Iterable<Cat> {
             if (B != null) {
                 B.parent = parent;
             }
-            // A (child.junior) et R (parent.senior) ne bougent pas
         }
 
 
@@ -231,11 +230,82 @@ public class Catfeinated implements Iterable<Cat> {
 
 		// remove c from the tree rooted at this and returns the root of the resulting tree
 		public CatNode retire(Cat c) {
-			/*
-			 * TODO: ADD YOUR CODE HERE
-			 */
-			return null;
+			// 1. Trouver la node avec la key c
+            CatNode toRetire = findCat(this, c);
+
+            // 2. Faire remove la key c en switchant le max dans le left subtree avec le root a delete
+            if (toRetire.senior == null && toRetire.junior == null) { // Si aucun child
+                removeCat(toRetire, c);
+            }
+            else if (toRetire.senior == null) { // Juste left child
+                if (toRetire.parent != null) {
+                    if (toRetire.parent.senior == toRetire)
+                        toRetire.parent.senior = toRetire.junior;
+                    else
+                        toRetire.parent.junior = toRetire.junior;
+                    toRetire.junior.parent = toRetire.parent;
+                } else {
+                    toRetire.junior.parent = null;
+                    CatNode temp = toRetire.junior;
+                    toRetire.junior = null;
+                    return temp;
+                }
+            }
+            else if (toRetire.junior == null) { // Juste right child
+                if (toRetire.parent != null) {
+                    if (toRetire.parent.senior == toRetire)
+                        toRetire.parent.senior = toRetire.senior;
+                    else
+                        toRetire.parent.junior = toRetire.senior;
+                    toRetire.senior.parent = toRetire.parent;
+                } else {
+                    toRetire.senior.parent = null;
+                    CatNode temp = toRetire.senior;
+                    toRetire.senior = null;
+                    return temp;
+                }
+            }
+            else {
+                Cat mostSenior = toRetire.junior.findMostSenior();
+                toRetire.catEmployee = mostSenior;
+                removeCat(toRetire.junior, mostSenior);
+                restoreHeap(toRetire);
+                return goBackToRoot(toRetire);
+            }
+            return this;
 		}
+
+        private CatNode goBackToRoot(CatNode node) {
+            // remonter jusqu'à la racine
+            while (node.parent != null) {
+                node = node.parent;
+            }
+            return node;
+        }
+
+        private void restoreHeap(CatNode root) {
+            if (root.catEmployee.getFurThickness() < root.senior.catEmployee.getFurThickness()) {
+                leftRotation(root.senior);
+                CatNode newRoot = goBackToRoot(root);
+                CatNode currCat = findCat(newRoot, root.catEmployee);
+                restoreHeap(currCat);
+            }
+        }
+
+        private void removeCat(CatNode node, Cat c) {
+            if (c.equals(node.catEmployee)) {
+                if (node.parent.junior == node)
+                    node.parent.junior = null;
+                else
+                    node.parent.senior = null;
+                node.parent = null;
+            }
+            else if (c.getMonthHired() < node.catEmployee.getMonthHired()) {
+                removeCat(node.senior, c);
+            } else {
+                removeCat(node.junior, c);
+            }
+        }
 
 		// find the cat with highest seniority in the tree rooted at this
 		public Cat findMostSenior() {
@@ -320,8 +390,21 @@ public class Catfeinated implements Iterable<Cat> {
         cafe.hire(B);
         cafe.hire(JTO);
         cafe.hire(C);
+        cafe.retire(B);
+        cafe.hire(JJ);
+        cafe.hire(J);
+        cafe.hire(MrsN);
+        cafe.retire(MrsN);
+        cafe.hire(B);
+        cafe.hire(T);
+        cafe.hire(MrB);
+        cafe.hire(MrsN);
+        cafe.hire(new Cat("Blofeld’s cat", 6, 72, 18, 120.0));
+        cafe.hire(new Cat("Lucifer", 10, 44, 20, 50.0));
 
-        System.out.println(cafe.root);
+//        System.out.println(cafe.root);
+        System.out.println(cafe.findMostSenior()); // displays Jonesy(0 , 21)
+        System.out.println(cafe.findMostJunior()); // displays Toulouse(180 , 37)
 	}
 
 
