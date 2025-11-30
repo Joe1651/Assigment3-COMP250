@@ -115,22 +115,118 @@ public class Catfeinated implements Iterable<Cat> {
 		}
 
 		// add the c to the tree rooted at this and returns the root of the resulting tree
-		public CatNode hire (Cat c) {
-            CatNode addedCat = this.addCat(this, c);
+        // add the c to the tree rooted at this and returns the root of the resulting tree
+        public CatNode hire (Cat c) {
+            CatNode root = addCat(this, c, null);
 
+            // trouver le noeud inséré
+            CatNode addedCat = findCat(root, c);
 
+            // upheap basé sur furThickness
+            while (addedCat.parent != null &&
+                    addedCat.catEmployee.getFurThickness() >
+                            addedCat.parent.catEmployee.getFurThickness()) {
+
+                // fils gauche -> right rotation
+                if (addedCat == addedCat.parent.junior) {
+                    rightRotation(addedCat);
+                } else { // fils droit -> left rotation
+                    leftRotation(addedCat);
+                }
+            }
+
+            // remonter jusqu'à la racine
+            while (addedCat.parent != null) {
+                addedCat = addedCat.parent;
+            }
             return addedCat;
-		}
+        }
 
-        private CatNode addCat(CatNode root, Cat c) {
-            // TODO: Added as a leaf respecting BST standard, now need to comply with MaxHeap
-            if (root == null)
-                root = new CatNode(c);
-            else if (c.getMonthHired() > root.catEmployee.getMonthHired())
-                root.junior = addCat(root.junior, c);
-            else if (c.getMonthHired() < root.catEmployee.getMonthHired())
-                root.senior = addCat(root.senior, c);
-            return root;
+
+        // child est le fils droit (senior) qui doit monter
+        private void leftRotation(CatNode child) {
+            CatNode parent = child.parent;    // P
+            CatNode grand  = parent.parent;   // peut être null
+            CatNode A      = child.junior;    // A
+
+            // rattacher child au grand-parent
+            child.parent = grand;
+            if (grand != null) {
+                if (grand.junior == parent) {
+                    grand.junior = child;
+                } else if (grand.senior == parent) {
+                    grand.senior = child;
+                }
+            }
+
+            // P devient fils gauche (junior) de child
+            child.junior = parent;
+            parent.parent = child;
+
+            // A devient fils droit (senior) de P
+            parent.senior = A;
+            if (A != null) {
+                A.parent = parent;
+            }
+            // L (parent.junior avant rotation) et B (child.senior) ne bougent pas
+        }
+
+
+        // child est le fils gauche (junior) qui doit monter
+        private void rightRotation(CatNode child) {
+            CatNode parent = child.parent;    // P
+            CatNode grand  = parent.parent;   // peut être null
+            CatNode B      = child.senior;    // B
+
+            // rattacher child au grand-parent
+            child.parent = grand;
+            if (grand != null) {
+                if (grand.junior == parent) {
+                    grand.junior = child;
+                } else if (grand.senior == parent) {
+                    grand.senior = child;
+                }
+            }
+
+            // P devient fils droit (senior) de child
+            child.senior = parent;
+            parent.parent = child;
+
+            // B devient fils gauche (junior) de P
+            parent.junior = B;
+            if (B != null) {
+                B.parent = parent;
+            }
+            // A (child.junior) et R (parent.senior) ne bougent pas
+        }
+
+
+        private CatNode addCat(CatNode node, Cat c, CatNode parent) {
+            if (node == null) {
+                CatNode newNode = new CatNode(c);
+                newNode.parent = parent;
+                return newNode;
+            }
+
+            if (c.getMonthHired() < node.catEmployee.getMonthHired()) {
+                node.senior = addCat(node.senior, c, node);
+            } else {
+                node.junior = addCat(node.junior, c, node);
+            }
+
+            return node;
+        }
+
+        private CatNode findCat (CatNode node, Cat c) {
+            if (node == null)
+                return null;
+            if (node.catEmployee.getMonthHired() == c.getMonthHired())
+                return node;
+            if (c.getMonthHired() < node.catEmployee.getMonthHired()) {
+                return findCat(node.senior, c);
+            } else {
+                return findCat(node.junior, c);
+            }
         }
 
 		// remove c from the tree rooted at this and returns the root of the resulting tree
@@ -220,6 +316,12 @@ public class Catfeinated implements Iterable<Cat> {
 		Cat BC = new Cat("Blofeld's cat", 6, 72, 18, 120.0);
 		Cat L = new Cat("Lucifer", 10, 44, 20, 50.0);
 
+        Catfeinated cafe = new Catfeinated();
+        cafe.hire(B);
+        cafe.hire(JTO);
+        cafe.hire(C);
+
+        System.out.println(cafe.root);
 	}
 
 
