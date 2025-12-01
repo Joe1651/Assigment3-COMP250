@@ -369,7 +369,7 @@ public class Catfeinated implements Iterable<Cat> {
         }
 
         private void buildCatList(CatNode root) {
-            if (root.catEmployee != null) {     // Change traversal to match ascending order (plus récent au plus vieux)
+            if (root != null) {     // Change traversal to match ascending order (plus récent au plus vieux)
                 buildCatList(root.junior);
                 this.cats.add(root.catEmployee);
                 buildCatList(root.senior);
@@ -422,8 +422,12 @@ public class Catfeinated implements Iterable<Cat> {
 
 //        System.out.println(cafe.root);
         System.out.println(cafe2.root);
-        System.out.println(cafe.findMostSenior()); // displays Jonesy(0 , 21)
-        System.out.println(cafe.findMostJunior()); // displays Toulouse(180 , 37)
+//        System.out.println(cafe.findMostSenior()); // displays Jonesy(0 , 21)
+//        System.out.println(cafe.findMostJunior()); // displays Toulouse(180 , 37)
+//        System.out.println(cafe.buildHallOfFame(3)); // displays [Blofeld’s cat(6 , 72), Mrs. Norris(100 , 68), Buttercup(45 , 53)]
+        System.out.println(cafe.budgetGroomingExpenses(13)); // displays 415.0
+        System.out.println(cafe.getGroomingSchedule());
+
 	}
 
 
