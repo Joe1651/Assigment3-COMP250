@@ -73,12 +73,27 @@ public class Catfeinated implements Iterable<Cat> {
 	// returns a list of cats containing the top numOfCatsToHonor cats 
 	// in the cafe with the thickest fur. Cats are sorted in descending 
 	// order based on their fur thickness. 
-	public ArrayList<Cat> buildHallOfFame(int numOfCatsToHonor) {
-		/*
-		 * TODO: ADD YOUR CODE HERE
-		 */
-		return null;
-	}
+    public ArrayList<Cat> buildHallOfFame(int numOfCatsToHonor) {
+        ArrayList<Cat> honorList = new ArrayList<>(numOfCatsToHonor);
+
+        // work on a copy of the whole cafe
+        Catfeinated copy = new Catfeinated(this);
+
+        addToList(honorList, copy, numOfCatsToHonor);
+        return honorList;
+    }
+
+    private void addToList(ArrayList<Cat> list, Catfeinated cafe, int maxSize) {
+        if (list.size() == maxSize || cafe.root == null) return;
+
+        // root has thickest fur because of the heap property
+        Cat best = cafe.root.catEmployee;
+        list.add(best);
+
+        cafe.retire(best);              // modifies only the copy
+        System.out.println(cafe.root);
+        addToList(list, cafe, maxSize); // recurse on the modified copy
+    }
 
 	// Returns the expected grooming cost the cafe has to incur in the next numDays days
 	public double budgetGroomingExpenses(int numDays) {
@@ -97,22 +112,27 @@ public class Catfeinated implements Iterable<Cat> {
 	// The cats in the list at index 0 need be groomed in the next week. 
 	// The cats in the list at index i need to be groomed in i weeks. 
 	// Cats in each sublist are listed in from most senior to most junior. 
-	public ArrayList<ArrayList<Cat>> getGroomingSchedule() {
-        Iterator<Cat> iter = this.iterator();
-        ArrayList<ArrayList<Cat>> groomList = new ArrayList<ArrayList<Cat>>(1);
-        while (iter.hasNext()) {
-            Cat curCat = iter.next();
-            int numWeeks = curCat.getDaysToNextGrooming()/7;
-            if (groomList.get(numWeeks) == null) {
-                groomList.add(numWeeks, new ArrayList<Cat>(1));
+    public ArrayList<ArrayList<Cat>> getGroomingSchedule() {
+        ArrayList<ArrayList<Cat>> groomList = new ArrayList<>();
+
+        // iterate over this cafe; your iterator already exists
+        for (Cat c : this) {
+            int numWeeks = c.getDaysToNextGrooming() / 7;
+
+            // ensure there is a sublist at index numWeeks
+            while (groomList.size() <= numWeeks) {
+                groomList.add(new ArrayList<Cat>());
             }
-            groomList.get(numWeeks).add(curCat);
+
+            groomList.get(numWeeks).add(c);
         }
+
         return groomList;
-	}
+    }
 
 
-	public Iterator<Cat> iterator() {
+
+    public Iterator<Cat> iterator() {
 		return new CatfeinatedIterator(root);
 	}
 
@@ -288,6 +308,7 @@ public class Catfeinated implements Iterable<Cat> {
                 restoreHeap(toRetire);
                 return goBackToRoot(toRetire);
             }
+
             return this;
 		}
 
@@ -299,27 +320,57 @@ public class Catfeinated implements Iterable<Cat> {
             return node;
         }
 
-        private void restoreHeap(CatNode root) {
-            if (root.catEmployee.getFurThickness() < root.senior.catEmployee.getFurThickness()) {
-                leftRotation(root.senior);
-                CatNode newRoot = goBackToRoot(root);
-                CatNode currCat = findCat(newRoot, root.catEmployee);
-                restoreHeap(currCat);
+        private void restoreHeap(CatNode node) {
+            if (node == null) return;
+
+            while (true) {
+                CatNode largest = node;
+
+                // check junior (left) child
+                if (node.junior != null &&
+                        node.junior.catEmployee.getFurThickness() >
+                                largest.catEmployee.getFurThickness()) {
+                    largest = node.junior;
+                }
+
+                // check senior (right) child
+                if (node.senior != null &&
+                        node.senior.catEmployee.getFurThickness() >
+                                largest.catEmployee.getFurThickness()) {
+                    largest = node.senior;
+                }
+
+                // heap property satisfied
+                if (largest == node) break;
+
+                // rotate the larger child up
+                if (largest == node.junior) {
+                    // junior (left) too big -> right rotation on junior
+                    rightRotation(largest);
+                } else {
+                    // senior (right) too big -> left rotation on senior
+                    leftRotation(largest);
+                }
+
+                // after rotation, 'node' has moved one level down; loop continues
             }
         }
 
+
         private void removeCat(CatNode node, Cat c) {
-            if (c.equals(node.catEmployee)) {
-                if (node.parent.junior == node)
-                    node.parent.junior = null;
-                else
-                    node.parent.senior = null;
-                node.parent = null;
-            }
-            else if (c.getMonthHired() < node.catEmployee.getMonthHired()) {
-                removeCat(node.senior, c);
-            } else {
-                removeCat(node.junior, c);
+            if (node != null) {
+                if (node.parent != null && c.equals(node.catEmployee)) {
+                    if (node.parent.junior == node)
+                        node.parent.junior = null;
+                    else
+                        node.parent.senior = null;
+                    node.parent = null;
+                }
+                else if (c.getMonthHired() < node.catEmployee.getMonthHired()) {
+                    removeCat(node.senior, c);
+                } else {
+                    removeCat(node.junior, c);
+                }
             }
         }
 
@@ -426,6 +477,7 @@ public class Catfeinated implements Iterable<Cat> {
 //        System.out.println(cafe.findMostJunior()); // displays Toulouse(180 , 37)
 //        System.out.println(cafe.buildHallOfFame(3)); // displays [Blofeld’s cat(6 , 72), Mrs. Norris(100 , 68), Buttercup(45 , 53)]
         System.out.println(cafe.budgetGroomingExpenses(13)); // displays 415.0
+        System.out.println(cafe.buildHallOfFame(3));
         System.out.println(cafe.getGroomingSchedule());
 
 	}
