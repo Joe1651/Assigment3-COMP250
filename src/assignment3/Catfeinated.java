@@ -18,11 +18,27 @@ public class Catfeinated implements Iterable<Cat> {
 	// Constructor that makes a shallow copy of a Catfeinated cafe
 	// New CatNode objects, but same Cat objects
 	public Catfeinated(Catfeinated cafe) {
-		/*
-		 * TODO: ADD YOUR CODE HERE
-		 */
+        CatNode newRoot = new CatNode(cafe.root.catEmployee);
+        createCopy(cafe.root, newRoot);
+        this.root = newRoot;
 	}
 
+    private void createCopy(CatNode currNode, CatNode newRoot) {
+        // Goes through the tree with pre-order traversal and creates the tree again
+        if (currNode != null) {
+            if (currNode.junior != null) {
+                newRoot.junior = new CatNode(currNode.junior.catEmployee);
+                newRoot.junior.parent = newRoot;
+                createCopy(currNode.junior, newRoot.junior);
+            }
+            if (currNode.senior != null) {
+                newRoot.senior = new CatNode(currNode.senior.catEmployee);
+                newRoot.senior.parent = newRoot;
+                createCopy(currNode.senior, newRoot.senior);
+            }
+
+        }
+    }
 
 	// add a cat to the cafe database
 	public void hire(Cat c) {
@@ -402,7 +418,10 @@ public class Catfeinated implements Iterable<Cat> {
         cafe.hire(new Cat("Blofeld’s cat", 6, 72, 18, 120.0));
         cafe.hire(new Cat("Lucifer", 10, 44, 20, 50.0));
 
+        Catfeinated cafe2 = new Catfeinated(cafe);
+
 //        System.out.println(cafe.root);
+        System.out.println(cafe2.root);
         System.out.println(cafe.findMostSenior()); // displays Jonesy(0 , 21)
         System.out.println(cafe.findMostJunior()); // displays Toulouse(180 , 37)
 	}
